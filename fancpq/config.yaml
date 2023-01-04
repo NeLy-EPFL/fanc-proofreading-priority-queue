@@ -1,0 +1,12 @@
+credential_path: "~/.local/etc/fanc_credentials.yaml"
+
+braincircuits:
+  base_url: "https://api.braincircuits.io"
+  dump_interval: 3600    # expect a new dump every dump_interval seconds
+
+cave:
+  dataset: fanc_production_mar2021
+
+criteria:
+  orphaned_soma:
+    max_synapse_count: 10
