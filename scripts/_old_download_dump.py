@@ -1,7 +1,7 @@
 from datetime import datetime
 from time import sleep
 
-from fancpq.upstream_api.dump import get_new_dump
+from fancpq._old_upstream_api.dump import get_new_dump
 
 
 if __name__ == '__main__':

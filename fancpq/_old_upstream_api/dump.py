@@ -140,6 +140,16 @@ def load_latest_valid_dump() -> tuple[datetime, dict[str, pd.DataFrame]]:
     dump = {
         'nodes': pd.read_parquet(dump_dir / 'bc_nodes.parquet'),
         'edges': pd.read_parquet(dump_dir / 'bc_edges.parquet'),
-        'soma': pd.read_parquet(dump_dir / 'soma.parquet')
+        'somas': pd.read_parquet(dump_dir / 'soma.parquet')
     }
+    
+    # nodes and edges df has some columns that should be int but are float
+    dump['nodes']['segment_id'] = dump['nodes']['segment_id'].astype(int)
+    for col in ('nr_pre', 'nr_post',
+                'nr_downstream_partner', 'nr_upstream_partner'):
+        dump['nodes'][col] = dump['nodes'][col].fillna(0).astype(int)
+    dump['nodes'] = dump['nodes'].reset_index().set_index('segment_id')
+    for col in ('src', 'dst', 'count'):
+        dump['edges'][col] = dump['edges'][col].astype(int)
+        
     return dump_time, dump
