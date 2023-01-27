@@ -6,6 +6,17 @@ braincircuits:
 
 cave:
   dataset: fanc_production_mar2021
+  ref_version: 506
+  tables:
+    soma: neuron_somas_dec2022
+    leg_mn: all_leg_motor_neuron_table_v0
+    haltere_mn: haltere_motor_neuron_table_v0
+    wing_mn: wing_motor_neuron_table_v0
+    neck_mn: neck_motor_neuron_table_v0
+    nerve_bundle: nerve_bundle_fibers_v0
+
+local:
+  data: "~/Data/fanc/fancpq"
 
 criteria:
   orphaned_soma:
