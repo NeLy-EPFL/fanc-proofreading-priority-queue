@@ -3,7 +3,7 @@ import numpy as np
 import logging
 import requests
 import json
-from typing import Union, List
+from typing import Union, List, Iterable
 from nptyping import NDArray, Shape, Int
 from datetime import datetime
 from subprocess import run
@@ -129,6 +129,10 @@ class FANCDataset:
         self.neck_mn_table = neck_mn_table
         self.nerve_bundle_table = nerve_bundle_table
         self.neck_connective_table = neck_connective_table
+        self.priority_tables = {}
+        if (p_tables_dir := version_data_dir / 'priority_tables').is_dir():
+            for path in p_tables_dir.glob('*.parquet'):
+                self.priority_tables[path.stem] = pd.read_parquet(path)
     
 
     @classmethod
@@ -220,10 +224,42 @@ class FANCDataset:
                   for k, v in table_names.items()}
         
         return cls(mat_timestamp, version_data_dir, **tables)
+    
+    
+    def save(self, priority_tables_dir: Path = None) -> None:
+        if priority_tables_dir is None:
+            priority_tables_dir = self.version_data_dir / 'priority_tables'
+        priority_tables_dir.mkdir(exist_ok=True)
+        for k, v in self.priority_tables.items():
+            v.to_parquet(priority_tables_dir / f'{k}.parquet')
 
 
-    def build_orphaned_mn_soma_table(self, synapse_count_thr: int = 50,
-                                     mn_type: str = 'leg') -> pd.DataFrame:
+    def build_orphaned_soma_table(self, synapse_count_thr: int = 10
+                                  ) -> pd.DataFrame:
+        logging.info('Finding orphaned somas...')
+        soma_segids = self.soma_table['remat_segment_id'].unique()
+        soma_segids_in_node_table = self.node_table.index\
+                                        .intersection(soma_segids)
+        sel = self.node_table.loc[soma_segids_in_node_table,
+                                  ['nr_post', 'nr_pre']]
+        sel['total_synapses'] = sel['nr_post'] + sel['nr_pre']
+        sel = sel[sel['total_synapses'] < synapse_count_thr]
+        sel = sel[['total_synapses']].reset_index()
+        zero_synapse_somas = pd.DataFrame()
+        zero_synapse_somas['segment_id'] = [
+            x for x in soma_segids if x not in self.node_table.index
+        ]
+        zero_synapse_somas['segment_id'] = zero_synapse_somas['segment_id']\
+                                                .astype('uint64')
+        zero_synapse_somas['total_synapses'] = 0
+        res = pd.concat([sel, zero_synapse_somas])
+        self.priority_tables['orphaned_soma'] = res
+        return res
+
+
+    def build_problematic_efferent_table(self, synapse_count_thr: int = 50,
+                                         mn_type: str = 'leg'
+                                         ) -> pd.DataFrame:
         logging.info('Finding orphaned MN somas...')
         if not hasattr(self, f'{mn_type}_mn_table'):
             raise ValueError(f'Motor neuron type `{mn_type}` not recognized.')
@@ -245,39 +281,23 @@ class FANCDataset:
         res.rename(columns={'index': 'segment_id'}, inplace=True)
         res['segment_id'] = res['segment_id'].astype('uint64')
         res.rename(columns={'index': 'segment_id'}, inplace=True)
+        self.priority_tables[f'problematic_efferent_{mn_type}'] = res
         return res
     
 
-    # def build_orphaned_soma_table(self, synapse_count_thr: int = 10
-    #                               ) -> pd.DataFrame:
-    #     logging.info('Finding orphaned somas...')
-    #     soma_segids = self.soma_table['remat_segment_id'].unique()
-    #     soma_segids_in_node_table = self.node_table.index\
-    #                                     .intersection(soma_segids)
-    #     sel = self.node_table.loc[soma_segids_in_node_table,
-    #                               ['nr_post', 'nr_pre']]
-    #     sel['total_synapses'] = sel['nr_post'] + sel['nr_pre']
-    #     sel = sel[sel['total_synapses'] < synapse_count_thr]
-    #     sel = sel[['total_synapses']].reset_index()
-    #     zero_synapse_somas = pd.DataFrame()
-    #     zero_synapse_somas['segment_id'] = [
-    #         x for x in soma_segids if x not in self.node_table.index
+    # def build_problematic_afferent_table(self, synapse_count_thr: int = 50
+    #                                      ) -> pd.DataFrame:
+    #     # Select afferent neurons by exclusion
+    #     motor_segids = np.unique(np.concatenate([
+    #         self.leg_mn_table['remat_segment_id'],
+    #         self.neck_mn_table['remat_segment_id'],
+    #         self.haltere_mn_table['remat_segment_id'],
+    #         self.wing_mn_table['remat_segment_id']
+    #     ]))
+    #     sel = self.nerve_bundle_table[
+    #         ~np.isin(self.nerve_bundle_table['remat_segment_id'], motor_segids)
     #     ]
-    #     zero_synapse_somas['segment_id'] = zero_synapse_somas['segment_id']\
-    #                                             .astype('uint64')
-    #     zero_synapse_somas['total_synapses'] = 0
-    #     res = pd.concat([sel, zero_synapse_somas])
-    #     return res
-
-    
-    def build_problematic_efferent_table(self, synapse_count_thr: int = 50
-                                         ) -> pd.DataFrame:
-        ...
-    
-
-    def build_problematic_afferent_table(self, synapse_count_thr: int = 50
-                                         ) -> pd.DataFrame:
-        ...
+    #     ...
 
 
     def build_multiple_soma_table(self) -> pd.DataFrame:
@@ -285,6 +305,7 @@ class FANCDataset:
         count = count[count > 1]
         res = count.to_frame().reset_index(names='segment_id')
         res.rename(columns={'remat_segment_id': 'num_somas'}, inplace=True)
+        self.priority_tables['multiple_soma'] = res
         return res
 
     
@@ -298,8 +319,14 @@ class FANCDataset:
         res = total_synapses.to_frame().reset_index(names='segment_id')
         res = res[res['total_synapses'] < synapse_count_thr]
         res['total_synapses'] = res['total_synapses'].astype(int)
+        self.priority_tables['unconnected_dn'] = res
         return res
     
+
+    def build_unconnected_an_table(self, synapse_count_thr: int = 50
+                                   ) -> pd.DataFrame:
+        ...
+
 
     def build_suspected_dn_table(self, in_out_ratio_thr: float = 0.1
                                  ) -> pd.DataFrame:
@@ -310,6 +337,7 @@ class FANCDataset:
         sel = self.node_table.loc[neck_segids_wo_soma, ['nr_post', 'nr_pre']]
         sel['in_out_ratio'] = sel['nr_post'] / sel['nr_pre']
         res = sel[sel['in_out_ratio'] > in_out_ratio_thr]
+        self.priority_tables['suspected_dn'] = res
         return sel
     
 
@@ -326,4 +354,5 @@ if __name__ == '__main__':
     # df = ds.build_orphaned_soma_table()
     # ds.build_multiple_soma_table()
     # ds.build_unconnected_dn_table()
-    ds.build_suspected_dn_table()
+    # ds.build_suspected_dn_table()
+    ds.build_problematic_afferent_table()

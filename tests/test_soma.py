@@ -1,7 +1,7 @@
 import unittest
 
-from fancpq.upstream_api.dump import load_latest_valid_dump
-from fancpq.upstream_api.cave_live import get_live_synapse_count
+from fancpq._old_upstream_api.dump import load_latest_valid_dump
+from fancpq._old_upstream_api.cave_live import get_live_synapse_count
 from fancpq.prioritize.soma import find_orphaned_somas, \
                                    double_check_orphaned_somas
 
