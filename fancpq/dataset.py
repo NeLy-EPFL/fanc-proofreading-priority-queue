@@ -134,6 +134,20 @@ class FANCDataset:
             for path in p_tables_dir.glob('*.parquet'):
                 self.priority_tables[path.stem] = pd.read_parquet(path)
     
+    
+    def __str__(self) -> str:
+        return (
+            'FANCDataset(\n'
+            f'    mat_timestep={self.mat_timestamp} '
+            f'({datetime.fromtimestamp(self.mat_timestamp).isoformat()}),\n'
+            f'    version_data_dir={self.version_data_dir},\n'
+            f'    |V|={len(self.node_table)}, |E|={len(self.edge_table)}\n)'
+        )
+    
+    
+    def __repr__(self) -> str:
+        return str(self)
+    
 
     @classmethod
     def get_latest(cls):
@@ -144,7 +158,8 @@ class FANCDataset:
         credentials = fancpq.util.load_credentials()
         res = requests.get(
             f'{base_url}/circuit/graph/dump',
-            headers={'Authorization': f'Bearer {credentials["braincircuits"]}'},
+            headers={'Authorization': f'Bearer {credentials["braincircuits"]}',
+                     'Authorization-Cave': f'Bearer {credentials["cave"]}'},
             params={'project': 'fruitfly_fanc_cave'}
         )
         if res.status_code != 200:
@@ -302,8 +317,7 @@ class FANCDataset:
 
     def build_multiple_soma_table(self) -> pd.DataFrame:
         count = self.soma_table['remat_segment_id'].value_counts()
-        count = count[count > 1]
-        res = count.to_frame().reset_index(names='segment_id')
+        res = count[count > 1].to_frame().reset_index(names='segment_id')
         res.rename(columns={'remat_segment_id': 'num_somas'}, inplace=True)
         self.priority_tables['multiple_soma'] = res
         return res
@@ -345,14 +359,14 @@ class FANCDataset:
         ...
 
     
-if __name__ == '__main__':
-    # ds = FANCDataset.get_latest()
-    ds = FANCDataset.from_path(data_dir / 'dump' / 'bc_dump_1674644403')
-    # print(ds.version_data_dir, ds.mat_timestamp)
-    # orphaned_mn_soma_table = ds.build_orphaned_mn_soma_table()
-    # print(orphaned_mn_soma_table)
-    # df = ds.build_orphaned_soma_table()
-    # ds.build_multiple_soma_table()
-    # ds.build_unconnected_dn_table()
-    # ds.build_suspected_dn_table()
-    ds.build_problematic_afferent_table()
+# if __name__ == '__main__':
+#     ds = FANCDataset.get_latest()
+#     ds = FANCDataset.from_path(data_dir / 'dump' / 'bc_dump_1674644403')
+#     print(ds.version_data_dir, ds.mat_timestamp)
+#     orphaned_mn_soma_table = ds.build_orphaned_mn_soma_table()
+#     print(orphaned_mn_soma_table)
+#     df = ds.build_orphaned_soma_table()
+#     ds.build_multiple_soma_table()
+#     ds.build_unconnected_dn_table()
+#     ds.build_suspected_dn_table()
+#     ds.build_problematic_afferent_table()

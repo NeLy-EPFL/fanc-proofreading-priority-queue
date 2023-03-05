@@ -1,4 +1,4 @@
-credential_path: "~/.local/etc/fanc_credentials.yaml"
+credential_path: "~/.local/etc/fancypq_credentials.yaml"
 
 braincircuits:
   base_url: "https://api.braincircuits.io"
