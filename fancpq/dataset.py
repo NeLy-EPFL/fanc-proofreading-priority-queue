@@ -360,13 +360,18 @@ class FANCDataset:
 
     
 # if __name__ == '__main__':
+#     import resource
+#     print(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
+    
 #     ds = FANCDataset.get_latest()
 #     ds = FANCDataset.from_path(data_dir / 'dump' / 'bc_dump_1674644403')
 #     print(ds.version_data_dir, ds.mat_timestamp)
-#     orphaned_mn_soma_table = ds.build_orphaned_mn_soma_table()
-#     print(orphaned_mn_soma_table)
+#     # orphaned_mn_soma_table = ds.build_orphaned_mn_soma_table()
+#     # print(orphaned_mn_soma_table)
 #     df = ds.build_orphaned_soma_table()
 #     ds.build_multiple_soma_table()
 #     ds.build_unconnected_dn_table()
 #     ds.build_suspected_dn_table()
-#     ds.build_problematic_afferent_table()
+#     # ds.build_problematic_afferent_table()
+
+#     print(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
