@@ -1,0 +1,7 @@
+pandas
+numpy
+nptyping
+requests
+caveclient
+pyyaml
+slack_bolt
