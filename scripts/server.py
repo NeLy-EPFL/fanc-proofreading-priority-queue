@@ -131,7 +131,7 @@ def sample_one_segment(table, user):
         if table == 'orphaned_soma_table':
             type_ = 'Orphaned soma'
             message = (f'This soma is only attached to '
-                        f'{etr["total_synapses"]} synapses.')
+                        f'{int(etr["total_synapses"])} synapses.')
         elif table == 'multiple_soma_table':
             type_ = 'Multiple somas'
             message = (f'This neuron appears to have '
@@ -139,16 +139,16 @@ def sample_one_segment(table, user):
         elif table == 'problematic_an_table':
             type_ = 'Ascending neuron'
             message = (f'This ascending neuron only has '
-                        f'{etr["nr_post"]} input synapses.')
+                        f'{int(etr["nr_post"])} input synapses.')
         elif table == 'problematic_mn_table':
             type_ = 'Motor neuron'
             message = (f'This motor neuron only has '
-                        f'{etr["nr_post"]} input synapses.')
+                        f'{int(etr["nr_post"])} input synapses.')
         elif table == 'unbalanced_in_table':
             type_ = 'VNC interneuron'
-            message = (f'This VNC interneuron has {etr["nr_post"]} input '
-                        f'synapses and {etr["nr_pre"]} output synapses. '
-                        f'This is quite unbalanced.')
+            message = (f'This VNC interneuron has {int(etr["nr_post"])} '
+                        f'input synapses and {int(etr["nr_pre"])} output '
+                        f'synapses. This is quite unbalanced.')
         retval = {'segid': segid, 'type': type_, 'reason': message}
         logging.debug(f'Found valid segid from {table}: {retval}')
         db.close()
@@ -268,7 +268,6 @@ def update_home_tab(client, event, logger):
 @app.command('/get')
 def propose_segment(client, ack, respond, command, say, body):
     ack()
-    print(12345, command)
     args = command['text'].split()
     
     if curr_pool is None:
