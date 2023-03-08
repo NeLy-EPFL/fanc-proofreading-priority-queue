@@ -16,7 +16,7 @@ cave:
     nerve_bundle: nerve_bundle_fibers_v0
 
 local:
-  data: "~/Data/fanc/fancpq"
+  data: "~/Data/fanc/ysp_bot"
 
 criteria:
   orphaned_soma:

@@ -2,10 +2,10 @@ import pandas as pd
 from pathlib import Path
 from caveclient import CAVEclient
 
-import fancpq.util
+import ysp_bot.util
 
-config = fancpq.util.load_config()
-credentials = fancpq.util.load_credentials()
+config = ysp_bot.util.load_config()
+credentials = ysp_bot.util.load_credentials()
 base_url = config['braincircuits']['base_url']
 download_interval = config['braincircuits']['dump_interval']
 

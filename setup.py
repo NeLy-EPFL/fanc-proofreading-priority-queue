@@ -5,7 +5,7 @@ with open('requirements.txt') as f:
     requirements = [l for l in requirements if not l.strip().startswith('#')]
 
 setuptools.setup(
-    name='fancpq',
+    name='you-should-proofread-bot',
     version='0.0.1',
     description='Prioritizing segments to proofread in FANC',
     author='Sibo Wang',

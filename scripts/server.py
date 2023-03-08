@@ -9,8 +9,8 @@ from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from caveclient import CAVEclient
 
-import fancpq
-import fancpq.util
+import ysp_bot
+import ysp_bot.util
 
 
 # Useful global variables
@@ -26,8 +26,8 @@ get_subcommands = {
     'in': 'unbalanced_in_table'
 }
 
-config = fancpq.util.load_config()
-credentials = fancpq.util.load_credentials()
+config = ysp_bot.util.load_config()
+credentials = ysp_bot.util.load_credentials()
 cave_client = CAVEclient(datastack_name=config['cave']['dataset'],
                          auth_token=credentials['cave'])
 
@@ -55,7 +55,7 @@ def update_version(minutes_past_hour=5):
     global curr_version_timestamp, curr_pool, main_mutex
     
     logging.info('Checking for new version...')
-    ds = fancpq.FANCDataset.get_latest()
+    ds = ysp_bot.FANCDataset.get_latest()
     
     if ds.mat_timestamp == curr_version_timestamp:
         logging.warning(f'No new version found; '
@@ -88,7 +88,7 @@ def sample_one_segment(table, user):
     
     logging.info(f'Sampling one segment from {table} for {user}...')
     
-    db = fancpq.ProofreadingDatabase(
+    db = ysp_bot.ProofreadingDatabase(
         Path(config['local']['data']).expanduser() / 'proofreading.db'
     )
     
@@ -361,7 +361,7 @@ def respond_fixed_button(client, ack, body, say):
     else:
         logging.info(f'User {user} marked {segid} as fixed')
         logging.debug('Connecting to database')
-        db = fancpq.ProofreadingDatabase(
+        db = ysp_bot.ProofreadingDatabase(
             Path(config['local']['data']).expanduser() / 'proofreading.db'
         )
         db.set_status(segid, 'done', user)
@@ -393,7 +393,7 @@ def respond_noaction_button(client, ack, body, say):
     else:
         logging.info(f'User {user} marked {segid} as fixed')
         logging.debug('Connecting to database')
-        db = fancpq.ProofreadingDatabase(
+        db = ysp_bot.ProofreadingDatabase(
             Path(config['local']['data']).expanduser() / 'proofreading.db'
         )
         db.set_status(segid, 'done', user)
@@ -425,7 +425,7 @@ def respond_skip_button(client, ack, body, say):
     else:
         logging.info(f'User {user} marked {segid} as fixed')
         logging.debug('Connecting to database')
-        db = fancpq.ProofreadingDatabase(
+        db = ysp_bot.ProofreadingDatabase(
             Path(config['local']['data']).expanduser() / 'proofreading.db'
         )
         db.add_to_user_skiplist(user, segid)
@@ -457,7 +457,7 @@ def mark_segment(ack, say, command):
     logging.info(f'User {user} marked {segid} as {state}')
     
     logging.debug('Connecting to database')
-    db = fancpq.ProofreadingDatabase(
+    db = ysp_bot.ProofreadingDatabase(
         Path(config['local']['data']).expanduser() / 'proofreading.db'
     )
     db.set_status(segid, state, user)
@@ -489,7 +489,7 @@ def annotate_segment(ack, say, command):
     logging.info(f'User {user} annotated {segid} at {pt_pos} with: {message}')
     
     logging.debug('Connecting to database')
-    db = fancpq.ProofreadingDatabase(
+    db = ysp_bot.ProofreadingDatabase(
         Path(config['local']['data']).expanduser() / 'proofreading.db'
     )
     db.set_annotation(segid, message, user, pt_pos)

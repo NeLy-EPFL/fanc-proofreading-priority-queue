@@ -1,11 +1,11 @@
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 
-import fancpq
-import fancpq.util
+import ysp_bot
+import ysp_bot.util
 
 
-credentials = fancpq.util.load_credentials()
+credentials = ysp_bot.util.load_credentials()
 
 app = App(token=credentials['slack']['bot_token'],
           signing_secret=credentials['slack']['signing_secret'])

@@ -5,4 +5,4 @@ from .database import ProofreadingDatabase
 from .slackbot import app
 
 
-fancpq_dir = Path(__file__).parent
+ysp_dir = Path(__file__).parent

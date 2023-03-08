@@ -10,11 +10,11 @@ from subprocess import run
 from pathlib import Path
 from fanc.rootID_lookup import segIDs_from_pts_service
 
-import fancpq
-import fancpq.util
+import ysp_bot
+import ysp_bot.util
 
 
-config = fancpq.util.load_config()
+config = ysp_bot.util.load_config()
 cave_version = config['cave']['ref_version']
 data_dir = Path(config['local']['data']).expanduser()
 cave_table_lookup = config['cave']['tables']
@@ -79,7 +79,7 @@ def materialize_cave_tables(mat_timestamp: int, cave_data_dir: Path = None,
 def materialize_neck_connective(mat_timestamp: int, json_file: Path = None,
                                 save_dir: Path = None) -> pd.DataFrame:
     if json_file is None:
-        json_file = fancpq.fancpq_dir / 'data/neck_seed_plane_75200.json'
+        json_file = ysp_bot.ysp_dir / 'data/neck_seed_plane_75200.json'
     with open(json_file) as f:
         json_state = json.load(f)
     _dfs = []
@@ -155,7 +155,7 @@ class FANCDataset:
         BrainCircuits and materialize the reference version of the
         CAVE tables to its materialization timestamp."""
         base_url = config['braincircuits']['base_url']
-        credentials = fancpq.util.load_credentials()
+        credentials = ysp_bot.util.load_credentials()
         res = requests.get(
             f'{base_url}/circuit/graph/dump',
             headers={'Authorization': f'Bearer {credentials["braincircuits"]}',
