@@ -2,6 +2,7 @@ import logging
 import threading
 import gc
 import re
+import shutil
 import random
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -15,6 +16,7 @@ import ysp_bot.util
 
 # Useful global variables
 curr_version_timestamp = None
+curr_version_dir = None
 curr_pool = None
 main_mutex = threading.Lock()
 
@@ -32,7 +34,7 @@ cave_client = CAVEclient(datastack_name=config['cave']['dataset'],
                          auth_token=credentials['cave'])
 
 log_path = Path(config['local']['data']).expanduser() / 'proofreading.db'
-logging.basicConfig(level=logging.DEBUG,
+logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)s %(message)s',
                     handlers=[
                         logging.FileHandler(log_path),
@@ -52,7 +54,7 @@ def seconds_till_next_run(minutes_past_hour):
 
 
 def update_version(minutes_past_hour=5):
-    global curr_version_timestamp, curr_pool, main_mutex
+    global curr_version_timestamp, curr_version_dir, curr_pool, main_mutex
     
     logging.info('Checking for new version...')
     ds = ysp_bot.FANCDataset.get_latest()
@@ -74,6 +76,10 @@ def update_version(minutes_past_hour=5):
         curr_pool = new_pool
         logging.info('Datset version updated')
         main_mutex.release()
+        if curr_version_dir is not None:
+            logging.info(f'Removing old version at {curr_version_dir}')
+            shutil.rmtree(curr_version_dir)
+            curr_version_dir = ds.version_data_dir
         del ds
         gc.collect()  # Force garbage collection
     
