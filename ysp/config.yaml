@@ -21,3 +21,6 @@ local:
 criteria:
   orphaned_soma:
     max_synapse_count: 10
+
+slack:
+  admin: U022J881TQC

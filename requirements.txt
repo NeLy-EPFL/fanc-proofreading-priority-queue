@@ -4,4 +4,4 @@ nptyping
 requests
 caveclient
 pyyaml
-flask
+slack_bolt
