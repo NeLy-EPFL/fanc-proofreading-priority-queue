@@ -252,28 +252,10 @@ class FANCDataset:
     def build_orphaned_soma_table(self, synapse_count_thr: int = 10
                                   ) -> pd.DataFrame:
         logging.info('Finding orphaned somas...')
-        # soma_segids = self.soma_table['remat_segment_id'].unique()
-        # soma_segids_in_node_table = self.node_table.index\
-        #                                 .intersection(soma_segids)
-        # sel = self.node_table.loc[soma_segids_in_node_table,
-        #                           ['nr_post', 'nr_pre']]
-        # sel['total_synapses'] = sel['nr_post'] + sel['nr_pre']
-        # sel = sel[sel['total_synapses'] < synapse_count_thr]
-        # sel = sel[['total_synapses']].reset_index()
-        # zero_synapse_somas = pd.DataFrame()
-        # zero_synapse_somas['segment_id'] = [
-        #     x for x in soma_segids if x not in self.node_table.index
-        # ]
-        # zero_synapse_somas['segment_id'] = zero_synapse_somas['segment_id']\
-        #                                         .astype('uint64')
-        # zero_synapse_somas['total_synapses'] = 0
-        # res = pd.concat([sel, zero_synapse_somas])
-        # self.priority_tables['orphaned_soma'] = res
-        # return res.set_index('segment_id')
         soma_segids = self.soma_table['remat_segment_id'].unique()
         soma_segids = self.node_table.index.intersection(soma_segids)
         sel = self.node_table.loc[soma_segids]
-        sel['total_synapses'] = sel['nr_post'] + sel['nr_pre']
+        sel['total_synapses'] = (sel['nr_post'] + sel['nr_pre']).astype(int)
         sel = sel[sel['total_synapses'] < synapse_count_thr]
         return sel
 
@@ -306,7 +288,9 @@ class FANCDataset:
             raise ValueError(f'Motor neuron type `{mn_type}` not recognized.')
         mn_nodes = self.node_table.loc[mn_segids]
         sel = mn_nodes[mn_nodes['nr_post'] < synapse_count_thr]
-        return sel[['nr_post']].copy()
+        sel = sel[['nr_post']].copy()
+        sel['nr_post'] = sel['nr_post'].astype(int)
+        return sel
     
 
     def build_problematic_afferent_table(self, synapse_count_thr: int = 50
@@ -329,7 +313,9 @@ class FANCDataset:
         an_segids = np.intersect1d(an_segids, self.node_table.index)
         an_nodes = self.node_table.loc[an_segids]
         sel = an_nodes[an_nodes['nr_post'] < synapse_count_thr]
-        return sel[['nr_post']].copy()
+        sel = sel[['nr_post']].copy()
+        sel['nr_post'] = sel[['nr_post']].astype(int)
+        return 
     
     
     def build_unbalanced_interneuron_table(
@@ -354,5 +340,7 @@ class FANCDataset:
         inter_nodes = inter_nodes[
             (inter_nodes['io_ratio'] < io_ratio_range[0]) |
             (inter_nodes['io_ratio'] > io_ratio_range[1])
-        ]
-        return inter_nodes.copy()
+        ].copy()
+        inter_nodes['nr_post'] = inter_nodes['nr_post'].astype(int)
+        inter_nodes['nr_pre'] = inter_nodes['nr_pre'].astype(int)
+        return inter_nodes

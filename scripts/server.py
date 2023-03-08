@@ -235,7 +235,7 @@ def update_home_tab(client, event, logger):
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": "• `in`: unbalanced VNC interneuron (segments with way fewer inputs or outputs than expected) \n • `soma`: orphaned somas that are disconnected from their arbor \n `somas`: segments with more than one somas \n • `an`: ascending neuron (going from the VNC to the brain) with too few inputs \n • `mn`: motor neurons with too few inputs in the VNC"
+                            "text": "• `in`: unbalanced VNC interneuron (segments with way fewer inputs or outputs than expected) \n • `soma`: orphaned somas that are disconnected from their arbor \n • `somas`: segments with more than one somas \n • `an`: ascending neuron (going from the VNC to the brain) with too few inputs \n • `mn`: motor neurons with too few inputs in the VNC"
                         }
                     },
                     {
@@ -370,7 +370,7 @@ def respond_fixed_button(client, ack, body, say):
         db = ysp_bot.ProofreadingDatabase(
             Path(config['local']['data']).expanduser() / 'proofreading.db'
         )
-        db.set_status(segid, 'done', user)
+        db.set_status(segid, 'fixed', user)
         db.close()
         response = ':tada: You marked this neuron as fixed!'
     
@@ -402,7 +402,7 @@ def respond_noaction_button(client, ack, body, say):
         db = ysp_bot.ProofreadingDatabase(
             Path(config['local']['data']).expanduser() / 'proofreading.db'
         )
-        db.set_status(segid, 'done', user)
+        db.set_status(segid, 'noaction', user)
         db.close()
         response = (':ok_hand: OK, no action taken, '
                     'this neuron is marked as done. Thanks for checking!')

@@ -55,9 +55,9 @@ class ProofreadingDatabase:
         self.con.commit()
     
     def get_global_segids_to_skip(self) -> Set:
-        # select all segids from "status" table where status is "skip" or "ok"
         self.cur.execute('''
-            SELECT segid FROM status WHERE status IN ("expired", "done");
+            SELECT segid FROM status
+                WHERE status IN ("expired", "fixed", "noaction");
         ''')
         segids = {x[0] for x in self.cur.fetchall()}
         return segids
