@@ -45,12 +45,10 @@ def seconds_till_next_run(minutes_past_hour):
     """Return the number of seconds till `minutes_past_hour` minutes
     past the next whole hour."""
     now = datetime.now()
-    if now.minute < minutes_past_hour:
-        next_hour = now.hour
-    else:
-        next_hour = now.hour + 1
     next_run = datetime(year=now.year, month=now.month, day=now.day,
-                        hour=next_hour, minute=minutes_past_hour)
+                        hour=now.hour, minute=minutes_past_hour)
+    if now > next_run:
+        next_run += timedelta(hours=1)
     return max(0, (next_run - now).total_seconds())
 
 
@@ -80,7 +78,7 @@ def update_version(minutes_past_hour=5):
         if curr_version_dir is not None:
             logging.info(f'Removing old version at {curr_version_dir}')
             shutil.rmtree(curr_version_dir)
-            curr_version_dir = ds.version_data_dir
+        curr_version_dir = ds.version_data_dir
         del ds
         gc.collect()  # Force garbage collection
     
@@ -281,7 +279,7 @@ def propose_segment(client, ack, respond, command, say, body):
         return
     
     say(
-        text='Here\'s a segment for you!',
+        text='@You Should Proofread this neuron!',
         blocks=[
             {
                 "type": "section",
@@ -289,7 +287,7 @@ def propose_segment(client, ack, respond, command, say, body):
                     "type": "mrkdwn",
                     "text": (":point_right: "
                             f'Your command was: `/get {command["text"]}`\n\n'
-                            'OK! Here\'s your neuron:')
+                             '@You Should Proofread this neuron!')
                 }
             },
             {
@@ -492,8 +490,13 @@ def annotate_segment(ack, say, command):
             f'Your command was: `/annotate {command["text"]}`\n\n'
             f'OK! I\'ve added the following message to segment `{segid}`: '
             f'"{message}"')
-    
-    
+
+
+@app.event("message")
+def handle_message_events(body, logger):
+    logger.debug(f"Got message: {body}")
+
+
 if __name__ == '__main__':
     update_version()
     
