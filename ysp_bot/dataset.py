@@ -8,7 +8,8 @@ from nptyping import NDArray, Shape, Int
 from datetime import datetime
 from subprocess import run
 from pathlib import Path
-from fanc.rootID_lookup import segIDs_from_pts_service
+from fanc.lookup import segids_from_pts
+# from fanc.rootID_lookup import segIDs_from_pts_service
 
 import ysp_bot
 import ysp_bot.util
@@ -26,8 +27,10 @@ def materialize_positions(pos: NDArray[Shape['NumPoints, 3'], Int],
     """Materialize a dataframe at a given timestamp."""
     if not isinstance(timestamp, datetime):
         timestamp = datetime.fromtimestamp(timestamp)
-    rootids = segIDs_from_pts_service(pos, return_roots=True,
-                                      timestamp=timestamp)
+    # rootids = segIDs_from_pts_service(pos, return_roots=True,
+    #                                   timestamp=timestamp)
+    rootids = segids_from_pts(pos, return_roots=True,
+                              timestamp=timestamp)
     assert rootids is not None and rootids.size == pos.shape[0]
     return rootids
 
