@@ -318,7 +318,7 @@ class FANCDataset:
         sel = an_nodes[an_nodes['nr_post'] < synapse_count_thr]
         sel = sel[['nr_post']].copy()
         sel['nr_post'] = sel[['nr_post']].astype(int)
-        return 
+        return sel
     
     
     def build_unbalanced_interneuron_table(

@@ -70,7 +70,8 @@ def update_version(minutes_past_hour=5):
             'problematic_mn_table': ds.build_problematic_efferent_table(),
             'unbalanced_in_table': ds.build_unbalanced_interneuron_table()
         }
-        logging.info('Calculated new problematic tables')
+        logging.info('Calculated new problematic tables: ' +
+                     str({k: len(v) for k, v in new_pool.items()}))
         main_mutex.acquire()
         curr_pool = new_pool
         logging.info('Datset version updated')
@@ -271,6 +272,8 @@ def propose_segment(client, ack, respond, command, say, body):
     if curr_pool is None:
         say(text='No pool is loaded yet. Please wait.')
         return
+    say(text=(f':point_right: Your command was: `/get {command["text"]}`. '
+              'I\'m working on it.'))
     
     table = get_subcommands[args[0]] if args else None
     feed = sample_one_segment(table=table, user=body['user_id'])
@@ -285,9 +288,7 @@ def propose_segment(client, ack, respond, command, say, body):
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": (":point_right: "
-                            f'Your command was: `/get {command["text"]}`\n\n'
-                             '@You Should Proofread this neuron!')
+                    "text": "@You Should Proofread this neuron!"
                 }
             },
             {
