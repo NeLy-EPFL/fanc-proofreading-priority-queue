@@ -10,7 +10,7 @@ class FANCDatasetTest(unittest.TestCase):
         config = ysp_bot.util.load_config()
         data_dir = Path(config['local']['data']).expanduser()
         ds = ysp_bot.FANCDataset.from_path(data_dir / 'dump' /
-                                          'bc_dump_1678035603')
+                                           'bc_dump_1678035603')
         return ds
     
     def test_load_ds(self):

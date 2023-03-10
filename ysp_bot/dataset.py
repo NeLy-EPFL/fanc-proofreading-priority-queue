@@ -273,7 +273,7 @@ class FANCDataset:
 
 
     def build_problematic_efferent_table(self, synapse_count_thr: int = 50,
-                                         mn_type: str = 'all'
+                                         mn_type: str = 'leg'
                                          ) -> pd.DataFrame:
         logging.info('Finding motor neurons with too few inputs...')
         if mn_type == 'all':
