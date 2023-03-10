@@ -9,6 +9,7 @@ from pathlib import Path
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from caveclient import CAVEclient
+from fanc.statebuilder import render_scene
 
 import ysp_bot
 import ysp_bot.util
@@ -281,6 +282,15 @@ def propose_segment(client, ack, respond, command, say, body):
         say(text='No more segments to propose! :tada:')
         return
     
+    # Get URL for rendered scene
+    try:
+        scene_url = render_scene(neurons=[feed['segid']])
+        segid_formated_str = f'<{scene_url}|{feed["segid"]}>'
+    except Exception as e:
+        logging.warning(f'FANC could not render scene for segid '
+                        f'{feed["segid"]}: {e}')
+        segid_formated_str = str(feed['segid'])
+    
     say(
         text='@You Should Proofread this neuron!',
         blocks=[
@@ -296,7 +306,7 @@ def propose_segment(client, ack, respond, command, say, body):
                 "fields": [
                     {
                         "type": "mrkdwn",
-                        "text": f"*Segment ID:*\n{feed['segid']}"
+                        "text": f"*Segment ID:*\n{segid_formated_str}"
                     },
                     {
                         "type": "mrkdwn",
