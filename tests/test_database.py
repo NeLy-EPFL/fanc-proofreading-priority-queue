@@ -18,7 +18,7 @@ class DatabaseTest(unittest.TestCase):
         
         if self.temp_db_path.is_file():
             self.temp_db_path.unlink()
-        db = ysp_bot.ProofreadingDatabase(self.temp_db_path)
+        db = ysp_bot.ProofreadingDatabaseConnector(self.temp_db_path)
 
         # Test user skiplist: write
         db.add_to_user_skiplist('test_user', 987654321)

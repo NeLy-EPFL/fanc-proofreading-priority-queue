@@ -5,7 +5,7 @@ from datetime import datetime
 from pathlib import Path
 
 
-class ProofreadingDatabase:
+class ProofreadingDatabaseConnector:
     def __init__(self, db_path: Path) -> None:
         if not db_path.is_file():
             self.con = sqlite3.connect(db_path)

@@ -94,7 +94,7 @@ def sample_one_segment(table, user):
     
     logging.info(f'Sampling one segment from {table} for {user}...')
     
-    db = ysp_bot.ProofreadingDatabase(data_dir / 'proofreading.db')
+    db = ysp_bot.ProofreadingDatabaseConnector(data_dir / 'proofreading.db')
     
     # If asked to sample from any table, randomly pick a table and
     # recursively call this function
@@ -364,7 +364,7 @@ def respond_fixed_button(client, ack, body, say):
     else:
         logging.info(f'User {user} marked {segid} as fixed')
         logging.debug('Connecting to database')
-        db = ysp_bot.ProofreadingDatabase(data_dir / 'proofreading.db')
+        db = ysp_bot.ProofreadingDatabaseConnector(data_dir / 'proofreading.db')
         db.set_status(segid, 'fixed', user)
         db.close()
         response = ':tada: You marked this neuron as fixed!'
@@ -394,7 +394,7 @@ def respond_noaction_button(client, ack, body, say):
     else:
         logging.info(f'User {user} marked {segid} as fixed')
         logging.debug('Connecting to database')
-        db = ysp_bot.ProofreadingDatabase(data_dir / 'proofreading.db')
+        db = ysp_bot.ProofreadingDatabaseConnector(data_dir / 'proofreading.db')
         db.set_status(segid, 'noaction', user)
         db.close()
         response = (':ok_hand: OK, no action taken, '
@@ -424,7 +424,7 @@ def respond_skip_button(client, ack, body, say):
     else:
         logging.info(f'User {user} marked {segid} as fixed')
         logging.debug('Connecting to database')
-        db = ysp_bot.ProofreadingDatabase(data_dir / 'proofreading.db')
+        db = ysp_bot.ProofreadingDatabaseConnector(data_dir / 'proofreading.db')
         db.add_to_user_skiplist(user, segid)
         db.close()
         response = ':ok_hand: OK, I won\'t show this neuron to you again.'
@@ -454,7 +454,7 @@ def mark_segment(ack, say, command):
     logging.info(f'User {user} marked {segid} as {state}')
     
     logging.debug('Connecting to database')
-    db = ysp_bot.ProofreadingDatabase(data_dir / 'proofreading.db')
+    db = ysp_bot.ProofreadingDatabaseConnector(data_dir / 'proofreading.db')
     db.set_status(segid, state, user)
     db.close()
     
@@ -484,7 +484,7 @@ def annotate_segment(ack, say, command):
     logging.info(f'User {user} annotated {segid} at {pt_pos} with: {message}')
     
     logging.debug('Connecting to database')
-    db = ysp_bot.ProofreadingDatabase(data_dir / 'proofreading.db')
+    db = ysp_bot.ProofreadingDatabaseConnector(data_dir / 'proofreading.db')
     db.set_annotation(segid, message, user, pt_pos)
     
     say(f':point_right: '
