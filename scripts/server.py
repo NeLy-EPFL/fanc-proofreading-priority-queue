@@ -285,11 +285,12 @@ def propose_segment(client, ack, respond, command, say, body):
     # Get URL for rendered scene
     try:
         scene_url = render_scene(neurons=[feed['segid']])
-        segid_formated_str = f'<{scene_url}|{feed["segid"]}>'
+        segid_formated_str = (f"{feed['segid']} "
+                              f"(<{scene_url}|Neuromancer link>)")
     except Exception as e:
         logging.warning(f'FANC could not render scene for segid '
                         f'{feed["segid"]}: {e}')
-        segid_formated_str = str(feed['segid'])
+        segid_formated_str = f"{feed['segid']}"
     
     say(
         text='@You Should Proofread this neuron!',
