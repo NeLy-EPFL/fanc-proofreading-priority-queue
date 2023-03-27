@@ -217,3 +217,14 @@ class UnbalancedInterneuron(PrioritizationRule):
                 f'synapses. This is quite unbalanced.'
             )
         }
+
+
+# Define which rules to use here ==========
+rules_config = [
+    # format: (slackbot_subcommand, table_name, rule_class)
+    ('soma', 'orphaned_soma_table', OrphanedSoma),
+    ('somas', 'multiple_soma_table', MultipleSomas),
+    ('an', 'problematic_an_table', ProblematicAscending),
+    ('mn:', 'problematic_mn_table', ProblematicEfferent),
+    ('in', 'unbalanced_in_table', UnbalancedInterneuron),
+]

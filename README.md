@@ -119,9 +119,14 @@ class MyRule(PrioritizationRule):
 
 Now, the obvious question is: which attributes can we access from the `FANCDataset` object when implementing our new rule? For this, see `notebooks/fanc_dataset.ipynb` to get an overview of what's in `FANCDataset`.
 
-Finally, you need to add your rule to `scripts/server.py`:
-- Add an entry to the `get_subcommands` dictionary defined in the beginning of the script: this maps the slackblot subcommand to a name of your table (you can come up with this name yourself). For example, if you add an entry `'myrule': 'my_rule_neuron_table'`, the proofreader can message the bot `/get myrule` to get a row from `my_rule_neuron_table`.
-- Add an entry to the `rule_objs` dictionary defined right after `get_subcommands`: this maps the table name (should be the same as above) to an object of the `OptimizationRule` class that you implemented. As a continuation of the previous example, you would add an entry `'my_rule_neuron_table': MyRule()`.
+Finally, you need to add your rule to the list of rules that the server uses. To do so, add an entry to the `rules_config` list at the very end of `ysp_bot/rules.py`. This entry should be a 3-tuple: the slack subcommand (str), the name of the table (str), and the class implementing the rule (class). You are free to define the subcommand and the table name but they shouldn't conflict with existing ones. For example, if you add the following entry to the list (assuming you have implemented the `MyRule` class above):
+```Python
+rules_config = [
+    ...  # existing rules
+    ('myrule', 'my_rule_table', MyRule)
+]
+```
+Then every hour, a `my_rule_table` Pandas dataframe will be updated using the `MyRule` class, and every time the user messages the bot `/get myrule`, the bot will fetch a row from that table and give it to the user.
 
 That's how you add a new rule! Don't worry about checking whether this table is still valid when the user queried it; this is handled already.
 

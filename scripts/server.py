@@ -13,7 +13,7 @@ from fanc.statebuilder import render_scene
 
 import ysp_bot
 import ysp_bot.util
-import ysp_bot.rules as rules
+from ysp_bot.rules import rules_config
 
 
 # Useful global variables
@@ -24,21 +24,10 @@ main_mutex = threading.Lock()
 
 
 # Define which rules to include and what their slackbot subcommands
-# are called
-get_subcommands = {
-    'soma': 'orphaned_soma_table',
-    'somas': 'multiple_soma_table',
-    'an': 'problematic_an_table',
-    'mn': 'problematic_mn_table',
-    'in': 'unbalanced_in_table'
-}
-rule_objs = {
-    'orphaned_soma_table': rules.OrphanedSoma(),
-    'multiple_soma_table': rules.MultipleSomas(),
-    'problematic_mn_table': rules.ProblematicEfferent(),
-    'problematic_an_table': rules.ProblematicAscending(),
-    'unbalanced_in_table': rules.UnbalancedInterneuron()
-}
+get_subcommands = {subcommand: table_name
+                   for subcommand, table_name, rule_class in rules_config}
+rule_objs = {table_name: rule_class()
+             for subcommand, table_name, rule_class in rules_config}
 
 
 config = ysp_bot.util.load_config()
