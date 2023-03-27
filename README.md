@@ -44,7 +44,7 @@ slack:
   - To reconnect to the screen session, run `screen -r`
 
 ## Implement your own prioritization rules
-The prioritization rules are implemented in `ysp_bot/rules.py`. Take a look at existing examples. Generally speaking, each rule should be implemented as a class that inherits from the `ysp_bot.rules.PrioritizationRule` abstract class. This abstract class requires you to implement two methods, namely `get_table` and `entry_to_feed`. They are specified below:
+The prioritization rules are implemented in `ysp_bot/rules.py`. Take a look at existing examples. Each rule should be implemented as a class that inherits from the `ysp_bot.rules.PrioritizationRule` abstract class. This abstract class requires you to implement two methods, namely `get_table` and `entry_to_feed`. They are specified below:
 ```Python
 class PrioritizationRule(abc.ABC):
     @abc.abstractmethod
@@ -117,7 +117,7 @@ class MyRule(PrioritizationRule):
         }
 ```
 
-Now, the obvious question is: which attributes can we access from the `FANCDataset` object when implementing our new rule? For this, see `notebooks/fanc_dataset.ipynb` to get an overview of what's in `FANCDataset`.
+Now, which attributes can we access from the `FANCDataset` object when implementing our new rule? For this, see `notebooks/fanc_dataset.ipynb` to get an overview of what's in `FANCDataset`.
 
 Finally, you need to add your rule to the list of rules that the server uses. To do so, add an entry to the `rules_config` list at the very end of `ysp_bot/rules.py`. This entry should be a 3-tuple: the slack subcommand (str), the name of the table (str), and the class implementing the rule (class). You are free to define the subcommand and the table name but they shouldn't conflict with existing ones. For example, if you add the following entry to the list (assuming you have implemented the `MyRule` class above):
 ```Python
