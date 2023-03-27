@@ -13,6 +13,7 @@ from fanc.statebuilder import render_scene
 
 import ysp_bot
 import ysp_bot.util
+from ysp_bot.rules import rules
 
 
 # Useful global variables
@@ -42,6 +43,9 @@ logging.basicConfig(level=logging.INFO,
                     handlers=[logging.FileHandler(log_path),
                               logging.StreamHandler()])
 
+rule_objs = {name: cls() for name, cls in rules.items()}
+
+
 def seconds_till_next_run(minutes_past_hour):
     """Return the number of seconds till `minutes_past_hour` minutes
     past the next whole hour."""
@@ -64,13 +68,8 @@ def update_version(minutes_past_hour=5):
                         f'still using version {curr_version_timestamp}')
     else:
         curr_version_timestamp = ds.mat_timestamp
-        new_pool = {
-            'orphaned_soma_table': ds.build_orphaned_soma_table(),
-            'multiple_soma_table': ds.build_multiple_soma_table(),
-            'problematic_an_table': ds.build_problematic_an_table(),
-            'problematic_mn_table': ds.build_problematic_efferent_table(),
-            'unbalanced_in_table': ds.build_unbalanced_interneuron_table()
-        }
+        new_pool = {name: rule.get_table(ds)
+                    for name, rule in rule_objs.items()}
         logging.info('Calculated new problematic tables: ' +
                      str({k: len(v) for k, v in new_pool.items()}))
         main_mutex.acquire()
@@ -128,28 +127,7 @@ def sample_one_segment(table, user):
             logging.info(f'{segid} has been touched since last dump')
             db.set_status(segid, 'expired', 'SERVER')
             continue
-        if table == 'orphaned_soma_table':
-            type_ = 'Orphaned soma'
-            message = (f'This soma is only attached to '
-                        f'{int(etr["total_synapses"])} synapses.')
-        elif table == 'multiple_soma_table':
-            type_ = 'Multiple somas'
-            message = (f'This neuron appears to have '
-                        f'{etr["num_somas"]} somas.')
-        elif table == 'problematic_an_table':
-            type_ = 'Ascending neuron'
-            message = (f'This ascending neuron only has '
-                        f'{int(etr["nr_post"])} input synapses.')
-        elif table == 'problematic_mn_table':
-            type_ = 'Motor neuron'
-            message = (f'This motor neuron only has '
-                        f'{int(etr["nr_post"])} input synapses.')
-        elif table == 'unbalanced_in_table':
-            type_ = 'VNC interneuron'
-            message = (f'This VNC interneuron has {int(etr["nr_post"])} '
-                        f'input synapses and {int(etr["nr_pre"])} output '
-                        f'synapses. This is quite unbalanced.')
-        retval = {'segid': segid, 'type': type_, 'reason': message}
+        retval = rule_objs[table].entry_to_feed(etr)
         logging.debug(f'Found valid segid from {table}: {retval}')
         db.close()
         return retval
@@ -285,7 +263,7 @@ def propose_segment(client, ack, respond, command, say, body):
     # Get URL for rendered scene
     try:
         scene_url = render_scene(neurons=[feed['segid']])
-        segid_formated_str = (f"{feed['segid']} "
+        segid_formated_str = (f"{feed['segid']}\n"
                               f"(<{scene_url}|Neuromancer link>)")
     except Exception as e:
         logging.warning(f'FANC could not render scene for segid '
