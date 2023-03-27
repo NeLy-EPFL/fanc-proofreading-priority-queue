@@ -181,12 +181,3 @@ class UnbalancedInterneuron(PrioritizationRule):
                 f'synapses. This is quite unbalanced.'
             )
         }
-
-
-rules = {
-    'orphaned_soma_table': OrphanedSoma,
-    'multiple_soma_table': MultipleSomas,
-    'problematic_mn_table': ProblematicEfferent,
-    'problematic_an_table': ProblematicAscending,
-    'unbalanced_in_table': UnbalancedInterneuron
-}

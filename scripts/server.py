@@ -13,7 +13,7 @@ from fanc.statebuilder import render_scene
 
 import ysp_bot
 import ysp_bot.util
-from ysp_bot.rules import rules
+import ysp_bot.rules as rules
 
 
 # Useful global variables
@@ -43,7 +43,13 @@ logging.basicConfig(level=logging.INFO,
                     handlers=[logging.FileHandler(log_path),
                               logging.StreamHandler()])
 
-rule_objs = {name: cls() for name, cls in rules.items()}
+rule_objs = {
+    'orphaned_soma_table': rules.OrphanedSoma(),
+    'multiple_soma_table': rules.MultipleSomas(),
+    'problematic_mn_table': rules.ProblematicEfferent(),
+    'problematic_an_table': rules.ProblematicAscending(),
+    'unbalanced_in_table': rules.UnbalancedInterneuron()
+}
 
 
 def seconds_till_next_run(minutes_past_hour):
