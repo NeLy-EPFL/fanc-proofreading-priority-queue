@@ -44,10 +44,84 @@ slack:
   - To reconnect to the screen session, run `screen -r`
 
 ## To implement your own prioritization rules
-- Implement a `self.build_xxxx_table(self, ...)` method under `ysp_bot.dataset.FANCDataset` (see [these examples](https://github.com/NeLy-EPFL/fanc-proofreading-priority-queue/blob/223a90dbd3e96bfa7eb3b6dc3f5948ee9351ffc1/ysp_bot/dataset.py#L255-L349)). This should be the majority of your code.
-- Modify [`update_version`](https://github.com/NeLy-EPFL/fanc-proofreading-priority-queue/blob/223a90dbd3e96bfa7eb3b6dc3f5948ee9351ffc1/scripts/server.py#L55) so that your method from the previous step is run when there's a new dataset version (happens every hour). This is a one-liner.
-- Under [`sample_one_segment`](https://github.com/NeLy-EPFL/fanc-proofreading-priority-queue/blob/223a90dbd3e96bfa7eb3b6dc3f5948ee9351ffc1/scripts/server.py#L91) in `script/server.py`, add a case in the if-elif-...-else block to define how a row from the table you generated should be transformed into a text message sent to the user. This is just string formatting; it should be no more than 3 lines of code.
-- Don't worry about checking whether this table is still valid when the user queried it; this is handled already.
+The prioritization rules are implemented in `ysp_bot/rules.py`. Take a look at existing examples. Generally speaking, each rule should be implemented as a class that inherits from the `ysp_bot.rules.PrioritizationRule` abstract class. This abstract class requires you to implement two methods, namely `get_table` and `entry_to_feed`.
+```Python
+class PrioritizationRule(abc.ABC):
+    @abc.abstractmethod
+    def get_table(self, dataset: FANCDataset, *args, **kwargs) -> pd.DataFrame:
+        """Given a `FANCDataset` object and a set of user-defined
+        parameters, return a Pandas dataframe of segments that are
+        selectedd for proofreading by this rule. This method is run
+        once an hour when a new FANC data dump is downloaded.
+
+        Parameters
+        ----------
+        dataset : FANCDataset
+            The most up-to-date FANC dataset object. `See dataset.py`.
+        *args, **kwargs
+            You can define any additional parameters for the rule.
+
+        Returns
+        -------
+        pd.DataFrame
+            A Pandas dataframe with any columns you want, as long as
+            they are indexed by the segment ID (integer). The columns
+            will be used to generate the feed entry (message given to
+            the proofreader).
+        """
+        pass    # implement your selection logic here
+            
+    @abc.abstractmethod
+    def entry_to_feed(self, etr: pd.Series) -> Dict:
+        """Given a single row in the table returned by `get_table`,
+        convert it to a message to be given to the proofreader.
+
+        Parameters
+        ----------
+        etr : pd.Series
+            A row from the table. `etr.name` would be the segment ID,
+            `etr['col_name']` would be the value in any column you
+            defined in `get_table`. 
+
+        Returns
+        -------
+        Dict
+            A dictionary of this format:
+            ```
+            {
+                'segid': etr.name,
+                'type': 'your text here',  # eg. 'Orphaned soma'
+                'reason': 'your text here'  # why you're proposing this segment
+            }
+            ```
+        """
+        pass    # convert a single row in the table to a feed entry
+```
+
+Concretely, to implement a new rule, you will just have to define something like this:
+```Python
+class MyRule(PrioritizationRule):
+    def get_table(dataset, ...):
+        table = ...
+        return table
+    
+    def entry_to_feed(self, etr):
+        return {
+            'segid': etr.name,
+            'type': 'My neuron type',
+            'reason': (
+                f'Some text briefly explaining the problem. You can use '
+                f'columns in the table you defined ({etr["my_col"]}) to '
+                f'format more info.'
+            )
+        }
+```
+
+Finally, you need to add your rule to `scripts/server.py`:
+- Add an entry to `get_subcommands`: this maps the slackblot subcommand to a name of your table (you can come up with this name yourself). For example, if you add an entry `'myrule': 'my_rule_neuron_table'`, the proofreader can use `/get myrule` command to get a row from `my_rule_neuron_table`.
+- Add an entry to `rule_objs`: this maps the table name (should be the same as above) to an object of the `OptimizationRule` class that you implemented. As a continuation of the previous example, you would add an entry `'my_rule_neuron_table': MyRule()`.
+
+That's how you add a new rule! Don't worry about checking whether this table is still valid when the user queried it; this is handled already.
 
 ## RESTful API?
-Might set it up at some point. See `ysp_bot/api_server` for skeleton. If this is done, `script/server.py` (the bot server) can actually be a lot cleaner.
+I haven't implemented this yet but might set it up at some point. See `ysp_bot/api_server` for skeleton. If this is done, `script/server.py` (the bot server) can actually be a lot cleaner.

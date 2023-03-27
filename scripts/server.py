@@ -22,6 +22,9 @@ curr_version_dir = None
 curr_pool = None
 main_mutex = threading.Lock()
 
+
+# Define which rules to include and what their slackbot subcommands
+# are called
 get_subcommands = {
     'soma': 'orphaned_soma_table',
     'somas': 'multiple_soma_table',
@@ -29,6 +32,14 @@ get_subcommands = {
     'mn': 'problematic_mn_table',
     'in': 'unbalanced_in_table'
 }
+rule_objs = {
+    'orphaned_soma_table': rules.OrphanedSoma(),
+    'multiple_soma_table': rules.MultipleSomas(),
+    'problematic_mn_table': rules.ProblematicEfferent(),
+    'problematic_an_table': rules.ProblematicAscending(),
+    'unbalanced_in_table': rules.UnbalancedInterneuron()
+}
+
 
 config = ysp_bot.util.load_config()
 credentials = ysp_bot.util.load_credentials()
@@ -42,14 +53,6 @@ logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)s %(message)s',
                     handlers=[logging.FileHandler(log_path),
                               logging.StreamHandler()])
-
-rule_objs = {
-    'orphaned_soma_table': rules.OrphanedSoma(),
-    'multiple_soma_table': rules.MultipleSomas(),
-    'problematic_mn_table': rules.ProblematicEfferent(),
-    'problematic_an_table': rules.ProblematicAscending(),
-    'unbalanced_in_table': rules.UnbalancedInterneuron()
-}
 
 
 def seconds_till_next_run(minutes_past_hour):
@@ -76,6 +79,10 @@ def update_version(minutes_past_hour=5):
         curr_version_timestamp = ds.mat_timestamp
         new_pool = {name: rule.get_table(ds)
                     for name, rule in rule_objs.items()}
+        new_pool = {}
+        for name, rule in rule_objs.items():
+            logging.info(f'Applying prioritization rule {name}...')
+            new_pool[name] = rule.get_table(ds)
         logging.info('Calculated new problematic tables: ' +
                      str({k: len(v) for k, v in new_pool.items()}))
         main_mutex.acquire()
