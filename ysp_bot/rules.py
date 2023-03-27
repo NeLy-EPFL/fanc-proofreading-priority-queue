@@ -12,7 +12,7 @@ class PrioritizationRule(abc.ABC):
     def get_table(self, dataset: FANCDataset, *args, **kwargs) -> pd.DataFrame:
         """Given a `FANCDataset` object and a set of user-defined
         parameters, return a Pandas dataframe of segments that are
-        selectedd for proofreading by this rule. This method is run
+        selected for proofreading by this rule. This method is run
         once an hour when a new FANC data dump is downloaded.
 
         Parameters

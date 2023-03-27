@@ -43,15 +43,15 @@ slack:
   - It's now safe to terminate the shell session. The server will run in the background.
   - To reconnect to the screen session, run `screen -r`
 
-## To implement your own prioritization rules
-The prioritization rules are implemented in `ysp_bot/rules.py`. Take a look at existing examples. Generally speaking, each rule should be implemented as a class that inherits from the `ysp_bot.rules.PrioritizationRule` abstract class. This abstract class requires you to implement two methods, namely `get_table` and `entry_to_feed`.
+## Implement your own prioritization rules
+The prioritization rules are implemented in `ysp_bot/rules.py`. Take a look at existing examples. Generally speaking, each rule should be implemented as a class that inherits from the `ysp_bot.rules.PrioritizationRule` abstract class. This abstract class requires you to implement two methods, namely `get_table` and `entry_to_feed`. They are specified below:
 ```Python
 class PrioritizationRule(abc.ABC):
     @abc.abstractmethod
     def get_table(self, dataset: FANCDataset, *args, **kwargs) -> pd.DataFrame:
         """Given a `FANCDataset` object and a set of user-defined
         parameters, return a Pandas dataframe of segments that are
-        selectedd for proofreading by this rule. This method is run
+        selected for proofreading by this rule. This method is run
         once an hour when a new FANC data dump is downloaded.
 
         Parameters
@@ -98,7 +98,7 @@ class PrioritizationRule(abc.ABC):
         pass    # convert a single row in the table to a feed entry
 ```
 
-Concretely, to implement a new rule, you will just have to define something like this:
+Concretely, to implement a new rule, you will just have to define something like this in `ysp_bot/rules.py`:
 ```Python
 class MyRule(PrioritizationRule):
     def get_table(dataset, ...):
@@ -117,9 +117,11 @@ class MyRule(PrioritizationRule):
         }
 ```
 
+Now, the obvious question is: which attributes can we access from the `FANCDataset` object when implementing our new rule? For this, see `notebooks/fanc_dataset.ipynb` to get an overview of what's in `FANCDataset`.
+
 Finally, you need to add your rule to `scripts/server.py`:
-- Add an entry to `get_subcommands`: this maps the slackblot subcommand to a name of your table (you can come up with this name yourself). For example, if you add an entry `'myrule': 'my_rule_neuron_table'`, the proofreader can use `/get myrule` command to get a row from `my_rule_neuron_table`.
-- Add an entry to `rule_objs`: this maps the table name (should be the same as above) to an object of the `OptimizationRule` class that you implemented. As a continuation of the previous example, you would add an entry `'my_rule_neuron_table': MyRule()`.
+- Add an entry to the `get_subcommands` dictionary defined in the beginning of the script: this maps the slackblot subcommand to a name of your table (you can come up with this name yourself). For example, if you add an entry `'myrule': 'my_rule_neuron_table'`, the proofreader can message the bot `/get myrule` to get a row from `my_rule_neuron_table`.
+- Add an entry to the `rule_objs` dictionary defined right after `get_subcommands`: this maps the table name (should be the same as above) to an object of the `OptimizationRule` class that you implemented. As a continuation of the previous example, you would add an entry `'my_rule_neuron_table': MyRule()`.
 
 That's how you add a new rule! Don't worry about checking whether this table is still valid when the user queried it; this is handled already.
 
